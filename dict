@@ -49,18 +49,21 @@ while read line; do
   sed -e 's/ — \([a-z]\)/ — \U\1/' -e 's/ — (\(.*\)) \([a-z]\)/ — (\1) \U\2/'| \
   # definition closing parenthesis remove
   sed 's/)$//' | \
-  # columization
+  # defition to newline
+  sed 's/\( —.*\)/\n\1/' | \
+  # emdash delete
+  sed 's/^ — //' | \
   # word wrap
-  fold --space --width=77 | \
+  fold --space --width=76 | \
   # bullet indent
-  sed 's/^∙ / ∙ /' | \
+  #sed 's/^∙ / ∙ /' | \
   # word wrap indent to column
-  sed 's/\(^[^ ].*$\)/   \1/' | \
-  # word type define as one word only
+  sed 's/\(^[^∙].*$\)/    \1/' | \
+  # word type definition as one word
   sed "s/^.*The noun.*$/${txtund}Noun${txtrst}/"     | \
   sed "s/^.*The verb.*$/${txtund}Verb${txtrst}/"     | \
   sed "s/^.*The adj.*$/${txtund}Adjective${txtrst}/" | \
-  sed "s/^.*The adv.*$/${txtund}Adverb${txtrst}/"
+  sed "s/^.*The adv.*$/${txtund}Adverb${txtrst}/"   
   # highlight search word
   #sed "s/${1}/${txtund}${1}${txtrst}/g"
   # columnize the advanced way
@@ -68,19 +71,20 @@ while read line; do
   #awk '/^[∙]+\./{a=length($1); print; next} {sub(/^ +/, " "); printf "%*s %s\n", a+1, " ",$0}'
 done
 
-# • subject, topic, theme — The subject matter of a conversation or discussion;
-#   "he didn't want to discuss the subject"; "it was a very sensitive topic";
-#   "his letters were always on the theme of love"
-# • subject, content, depicted object — Something (a person or object or scene)
-#   selected by an artist or photographer for graphic representation; "a moving
-#   picture of a train is more dramatic than a still picture of the same
-#   subject"
-
 # • subject, topic, theme
+#     The subject matter of a conversation or discussion; "he didn't want to
+#     discuss the subject"; "it was a very sensitive topic"; "his letters were
+#     always on the theme of love"
+# • subject, content, depicted object
+#     Something (a person or object or scene) selected by an artist or
+#     photographer for graphic representation; "a moving picture of a train is
+#     more dramatic than a still picture of the same subject"
+
+# subject, topic, theme
 #   The subject matter of a conversation or discussion; "he didn't want to
 #   discuss the subject"; "it was a very sensitive topic"; "his letters were
 #   always on the theme of love"
-# • subject, content, depicted object
+# subject, content, depicted object
 #   Something (a person or object or scene) selected by an artist or
 #   photographer for graphic representation; "a moving picture of a train is
 #   more dramatic than a still picture of the same subject"
