@@ -1,0 +1,3 @@
+__wncv__ is a package name for two scripts that provide a command line dictionary and thesaurus.  __wncv__ is a clever acronym for _W_ord_N_et _c_onsole _v_erson, its name is based on a program of similiar functionality called `sdcv`.  The scripts are named `dict` and `thes`.
+
+[WordNet](http://wordnet.princeton.edu/) is an electronic lexical database from Princeton Univeristy.  The WordNet program provides a command line and GUI program.  The scripts `dict` and `thes` are wrapper scripts to the command line program that provide parsing, formatting, and ease of use.

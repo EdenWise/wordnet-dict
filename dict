@@ -1,0 +1,86 @@
+#!/usr/bin/bash
+# Definition lookup/parser of WordNet lexical database (dictionary)
+
+# Highlight text variables
+txtbld=$(tput bold)
+txtund=$(tput sgr 0 1)
+txtblu=$(tput setaf 4)
+txtrst=$(tput sgr0)
+
+# Usage
+if [ "$1" = -h -o "$1" = --help ] || [ $# -ne 1 ]; then
+  echo "${0##*/} [word] - command line dictionary."
+  exit
+fi
+
+# Word existence test and suggestion
+spelltest=$(echo "$1" | aspell -a | sed -e '1d' -e '$d' -e '/^*$/d' -e \
+  's/^.*: //')
+  if [ "$spelltest" ]; then
+    echo "Word not found... ${txtbld}suggestions:${txtrst}"
+    echo " $spelltest" | fmt -c -w 80 -g 80
+    exit 1
+  fi
+
+# Parse and format output
+definition=$(wn "$1" -over)
+[ ! "$definition" ] && { echo "Definition not found."; exit 1; }
+
+echo "$definition" | \
+while read line; do
+  echo "$line" | \
+  # empty lines delete
+  sed -e '/^ .*$/d' -e '/^$/d' | \
+  # overview line delete
+  sed '/^Overview.*$/d' | \
+  # numbered list to bullet
+  sed 's/^[0-9]\+\. /∙ /g' | \
+  # similar words number delete
+  sed 's/ ([0-9]\+) / /' | \
+  # similar words beginning parenthesis add
+  #sed 's/∙ /∙ (/' | \
+  # similar words closing parenthesis add
+  #sed 's/ -- /) -- /' | \
+  # hyphen to emdash
+  sed 's/ -- / — /'   | \
+  # definition beginning parenthesis remove
+  sed 's/ — (/ — /'   | \
+  # definition captialize first letter
+  sed -e 's/ — \([a-z]\)/ — \U\1/' -e 's/ — (\(.*\)) \([a-z]\)/ — (\1) \U\2/'| \
+  # definition closing parenthesis remove
+  sed 's/)$//' | \
+  # columization
+  # word wrap
+  fold --space --width=77 | \
+  # bullet indent
+  sed 's/^∙ / ∙ /' | \
+  # word wrap indent to column
+  sed 's/\(^[^ ].*$\)/   \1/' | \
+  # word type define as one word only
+  sed "s/^.*The noun.*$/${txtund}Noun${txtrst}/"     | \
+  sed "s/^.*The verb.*$/${txtund}Verb${txtrst}/"     | \
+  sed "s/^.*The adj.*$/${txtund}Adjective${txtrst}/" | \
+  sed "s/^.*The adv.*$/${txtund}Adverb${txtrst}/"
+  # highlight search word
+  #sed "s/${1}/${txtund}${1}${txtrst}/g"
+  # columnize the advanced way
+  #fold -s -w 78 | \
+  #awk '/^[∙]+\./{a=length($1); print; next} {sub(/^ +/, " "); printf "%*s %s\n", a+1, " ",$0}'
+done
+
+# • subject, topic, theme — The subject matter of a conversation or discussion;
+#   "he didn't want to discuss the subject"; "it was a very sensitive topic";
+#   "his letters were always on the theme of love"
+# • subject, content, depicted object — Something (a person or object or scene)
+#   selected by an artist or photographer for graphic representation; "a moving
+#   picture of a train is more dramatic than a still picture of the same
+#   subject"
+
+# • subject, topic, theme
+#   The subject matter of a conversation or discussion; "he didn't want to
+#   discuss the subject"; "it was a very sensitive topic"; "his letters were
+#   always on the theme of love"
+# • subject, content, depicted object
+#   Something (a person or object or scene) selected by an artist or
+#   photographer for graphic representation; "a moving picture of a train is
+#   more dramatic than a still picture of the same subject"
