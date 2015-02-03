@@ -1,0 +1,62 @@
+#!/usr/bin/bash
+# Definition lookup and parser using the WordNet lexical database.
+
+# Highlight text variables
+txtbld=$(tput bold)
+txtund=$(tput sgr 0 1)
+txtrst=$(tput sgr0)
+
+# Usage
+if [ "$1" = -h -o "$1" = --help ] || [ $# -ne 1 ]; then
+  echo "${0##*/} [word] — command line dictionary"
+  exit
+fi
+
+# Word existence test and suggestion
+spelltest=$(echo "$1" | aspell -a | grep -x "^& "$1" .*$" | sed 's/^.*: //')
+  if [ "$spelltest" ]; then
+    echo "Word not found... suggestions:"
+    echo " $spelltest" | fmt --crown-margin --width=80 --goal=80
+    exit 1
+  fi
+
+# Parse and format output
+definition=$(wn "$1" -over)
+[ ! "$definition" ] && \
+  { echo "Definition not found in WordNet database."; exit 1; }
+
+echo "$definition" | \
+while read line; do
+  echo "$line" | \
+  # empty lines delete
+  sed -e '/^ .*$/d' -e '/^$/d' | \
+  # overview line delete
+  sed '/^Overview.*$/d' | \
+  # numbered list to one-space indent
+  sed 's/^[0-9]\+\. / /' | \
+  # similar words number delete
+  sed 's/^ ([0-9]\+) / /' | \
+  # definition beginning parenthesis remove
+  sed 's/ -- (/ -- /'   | \
+  # definition captialize first letter
+  sed -e 's/ -- \([a-z]\)/ -- \U\1/' \
+      -e 's/ -- (\(.*\)) \([a-z]\)/ -- (\1) \U\2/' | \
+  # definition closing parenthesis remove
+  sed 's/)$//' | \
+  # defition to newline
+  sed 's/-- \(.*\)/\n\1/' | \
+  # word wrap
+  fold --space --width=77 | \
+  # word wrap indent to column
+  sed 's/\(^[^ ].*$\)/   \1/' | \
+  # word type definition as one word
+  sed "s/^.*The noun.*$/${txtbld}Noun${txtrst}/"     | \
+  sed "s/^.*The verb.*$/${txtbld}Verb${txtrst}/"     | \
+  sed "s/^.*The adj.*$/${txtbld}Adjective${txtrst}/" | \
+  sed "s/^.*The adv.*$/${txtbld}Adverb${txtrst}/"   
+  # highlight search word
+  #sed "s/${1}/${txtund}${1}${txtrst}/g"
+  # columnize the advanced way
+  #fold -s -w 78 | \
+  #awk '/^[∙]+\./{a=length($1); print; next} {sub(/^ +/, " "); printf "%*s %s\n", a+1, " ",$0}'
+done

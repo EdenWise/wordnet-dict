@@ -1,0 +1,49 @@
+#!/usr/bin/bash
+# Synonym lookup and parser using the WordNet lexical database.
+
+# Highlight text variables
+txtbld=$(tput bold)
+txtund=$(tput sgr 0 1)
+txtrst=$(tput sgr0)
+
+# Usage
+if [ "$1" = -h -o "$1" = --help ] || [ $# -ne 1 ]; then
+  echo "${0##*/} [word] — command line thesaurus"
+  exit
+fi
+
+# Word existence test and suggestion
+spelltest=$(echo "$1" | aspell -a | grep -x "^& "$1" .*$" | sed 's/^.*: //')
+  if [ "$spelltest" ]; then
+    echo "Word not found... suggestions:"
+    echo " $spelltest" | fmt --crown-margin --width=80 --goal=80
+    exit 1
+  fi
+
+# Parse and format output
+synonym=$(wn "$1" -synsn -synsv -synsa -synsr)
+[ ! "$synonym" ] && \
+  { echo "Synonym not found in WordNet database."; exit 1; }
+
+echo "$synonym" | \
+while read line; do
+  echo "$line"  | \
+  # empty lines delete
+  sed -e '/^$/d'    \
+      -e '/^ .*$/d' | \
+  # sense numbers line delete
+  sed -e '/^[0-9]\+ sense[s]\? of.*$/d' | \
+  # sense number lines delete
+  sed '/^Sense [0-9].*$/d' | \
+  # word wrap
+  fold --space --width=79 | \
+  # original synonym and likenesses indent
+  sed 's/\(^[^=].*$\)/ \1/' | \
+  # synonyms indent arrow to three blocks
+  sed 's/^=> /   /' | \
+  # word type definition as one word
+  sed "s|^.*Synonyms/Hypernyms.*of noun.*$|${txtbld}Noun${txtrst}|" | \
+  sed "s|^.*Synonyms/Hypernyms.*of verb.*$|${txtbld}Verb${txtrst}|" | \
+  sed "s|^.*Similarity of adj.*$|${txtbld}Adjective${txtrst}|" | \
+  sed "s|^.*Synonyms of adv.*$|${txtbld}Adverb${txtrst}|"
+done
