@@ -8,7 +8,7 @@ txtrst=$(tput sgr0)
 
 # Usage
 if [ "$1" = -h -o "$1" = --help ] || [ $# -ne 1 ]; then
-  echo "${0##*/} [word] — command line dictionary"
+  echo "${0##*/} <word> — command line dictionary"
   exit
 fi
 
