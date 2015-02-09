@@ -15,7 +15,7 @@ fi
 # Word existence test and suggestion
 spelltest=$(echo "$1" | aspell -a | grep -x "^& "$1" .*$" | sed 's/^.*: //')
   if [ "$spelltest" ]; then
-    echo "Word not found... suggestions:"
+    echo "Word not found in aspell database. Possible alternatives:"
     echo " $spelltest" | fmt --crown-margin --width=80 --goal=80
     exit 1
   fi
